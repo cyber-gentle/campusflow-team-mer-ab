@@ -1,0 +1,22 @@
+{
+    "T001": {
+        "id": "T001",
+        "title": "Wifi is down",
+        "category": "Network",
+        "urgency": "high",
+        "affected_users": 15,
+        "priority": "critical",
+        "status": "open",
+        "assigned_to": null
+    },
+    "002": {
+        "id": "T002",
+        "title": "wifi",
+        "category": "Hardware",
+        "urgency": "medium",
+        "affected_users": 12,
+        "priority": "high",
+        "status": "open",
+        "assigned_to": null
+    }
+}
