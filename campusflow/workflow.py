@@ -45,15 +45,19 @@ User: {self.current_user}
             elif users_choice == 8:
                 print("Exiting...")
                 break
+            
             elif users_choice in range(2, 8):
                 if self.current_user == "standard_user" and users_choice in self.admin_only_options:
                     print("This option is restricted to administrators.")
+
                 elif users_choice == 4:
                     print(self.assign_tickets())
+
+                elif users_choice == 5:
+                    print(self.update_status())
+
                 else:
                     print("This option is not available yet.")
-            else:
-                print("Choose a valid input.")
 
     def create_ticket(self):
         title = input("Enter ticket title: ").strip()
@@ -104,41 +108,79 @@ User: {self.current_user}
         print(save_tickets(self.tickets_file_name, self.tickets))
 
 
-    def find_ticket(self, id):
-       return self.tickets.get(id)
-
-
-    def assign_tickets(self) -> str:
-        id = input("Enter ticket ID: ").upper().strip()
-
-        mentors_available = ["Kingsley", "Gabriel", "Godswill", "Isaac"]
-
-        mentor_picked = self._get_choice("Select Staff to assign", mentors_available)
-        
-        ticket = self.find_ticket(id)
+    def find_ticket(self) -> dict | str:
+        ticket_id = input("Enter ticket ID: ").upper().strip()
+        ticket = self.tickets.get(ticket_id)
 
         if ticket is None:
             return "Ticket not found."
-        
-        print(ticket)
-        if ticket["assigned_to"].title() == "None":
-            ticket["assigned_to"] = mentor_picked
-            self._save_tickets()
-            return
 
-        
-            
-        print(f"confirm assignment from {ticket["assigned_to"]} to {mentor_picked}\n 1. Yes 2. No")
-        choice = get_users_choice()
-        if choice == 1:
-            ticket["assigned_to"] = mentor_picked
-            self._save_tickets()
-            
-        else:
-            return
+        return ticket
 
+    def assign_tickets(self) -> str:
+            
+            mentors_available = ["Kingsley", "Gabriel", "Godswill", "Isaac"]
+
+            ticket = self.find_ticket()
+            
+            mentor_picked = self._get_choice("Select Staff to assign", mentors_available)
+            
+
+            if isinstance(ticket, str):
+                print(ticket)
+                return ticket
+            
+            
+            if ticket["assigned_to"].title() == "None":
+                ticket["assigned_to"] = mentor_picked
+                self._save_tickets()
+                return
+            if ticket["assigned_to"].title() == mentor_picked:
+                return f"Already assigned to {mentor_picked}"
+
+            print(f"confirm assignment from {ticket["assigned_to"]} to {mentor_picked}\n 1. Yes 2. No")
+            choice = get_users_choice()
+            if choice == 1:
+                ticket["assigned_to"] = mentor_picked
+                self._save_tickets()
                 
+            else:
+                return
 
+    def update_status(self) -> str:
+        ticket = self.find_ticket()
+
+        if isinstance(ticket, str):
+            print(ticket)
+            return ticket
+
+        status = ticket["status"]
+        assigned_to = ticket.get("assigned_to")
+
+        if status == "open":
+            if assigned_to is None or assigned_to == "None" or not assigned_to:
+                print("Ticket must be assigned before it can move to in-progress.")
+                return "Status not updated."
+
+            ticket["status"] = "in-progress"
+
+        elif status == "in-progress":
+            ticket["status"] = "resolved"
+
+        elif status == "resolved":
+            ticket["status"] = "closed"
+
+        elif status == "closed":
+            print("Ticket is already closed.")
+            return "Status not updated."
+
+        else:
+            print("Invalid ticket status.")
+            return "Status not updated."
+
+        self._save_tickets()
+        return (f"Ticket status successfully updated to '{ticket['status']}'.")
+        
         
             
 def get_users_choice() -> int:
