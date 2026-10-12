@@ -1,6 +1,7 @@
+from typing import Any
 import json
 
-def save_tickets(file_name: str, tickets) -> str:
+def save_tickets(file_name: str, tickets: dict[str, dict]) -> str:
     if not isinstance(file_name, str):
         return "Save file name must be a string"
 
