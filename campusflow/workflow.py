@@ -41,12 +41,15 @@ User: {self.current_user}
 
             if users_choice == 1:
                 self.create_ticket()
+            
             elif users_choice == 8:
                 print("Exiting...")
                 break
             elif users_choice in range(2, 8):
                 if self.current_user == "standard_user" and users_choice in self.admin_only_options:
                     print("This option is restricted to administrators.")
+                elif users_choice == 4:
+                    print(self.assign_tickets())
                 else:
                     print("This option is not available yet.")
             else:
@@ -100,52 +103,39 @@ User: {self.current_user}
     def _save_tickets(self):
         print(save_tickets(self.tickets_file_name, self.tickets))
 
+
     def find_ticket(self, id):
        return self.tickets.get(id)
 
-    def update_status(self, id):
-        valid_status = ["open", "in-progress", "resolved"]
-        ticket =self.find_ticket(id)
-        if not ticket:
-            return "ticket not found"
-        
-            
-        if ticket["status"] == "open" and ticket["assigned_to"] == "None":
-            return f"ticket has not been assigned so its ticket["status"] '
-       
 
-    def assign_tickets(self):
-        id = input("Enter ticket ID: ")
+    def assign_tickets(self) -> str:
+        id = input("Enter ticket ID: ").upper().strip()
 
-        mentors_available = ["Kinglsey", "Gabriel", "Godswill", "Isaac"]
+        mentors_available = ["Kingsley", "Gabriel", "Godswill", "Isaac"]
 
-        print(f"Please chose mentor to be assigned to from the list of available mentors given: {mentors_available}")
-
-        mentor_picked = input("Enter name here: ").strip().title()
-
-        if mentor_picked  not in mentors_available:
-            return f"invalid {mentor_picked} please select {mentors_available}"
+        mentor_picked = self._get_choice("Select Staff to assign", mentors_available)
         
         ticket = self.find_ticket(id)
 
         if ticket is None:
-            print("Ticket not found.")
-            return False
-
-        if ticket["assigned_to"] == "None":
+            return "Ticket not found."
+        
+        print(ticket)
+        if ticket["assigned_to"].title() == "None":
             ticket["assigned_to"] = mentor_picked
             self._save_tickets()
+            return
 
+        
+            
+        print(f"confirm assignment from {ticket["assigned_to"]} to {mentor_picked}\n 1. Yes 2. No")
+        choice = get_users_choice()
+        if choice == 1:
+            ticket["assigned_to"] = mentor_picked
+            self._save_tickets()
+            
         else:
-            print(f"ticket already assigned to {ticket['assigned_to']}")
-            print(f"confirm change to {mentor_picked}; 1. Yes 2. No")
-
-            choice = get_users_choice()
-            if choice == 1:
-                ticket["assigned_to"] = mentor_picked
-                self._save_tickets()
-            else:
-                return False
+            return
 
                 
 
