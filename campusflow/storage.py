@@ -1,4 +1,3 @@
-from typing import Any
 import json
 
 def save_tickets(file_name: str, tickets) -> str:

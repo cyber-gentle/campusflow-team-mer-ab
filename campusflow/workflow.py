@@ -78,6 +78,7 @@ User: {self.current_user}
 
     def check_user(self) -> str:
         return self._get_choice("Select user", self.user_roles)
+        
 
     def _get_choice(self, prompt, options):
         while True:
@@ -106,4 +107,5 @@ def get_users_choice() -> int:
     try:
         return int(users_choice)
     except ValueError:
+        return 0
         return 0
