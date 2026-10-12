@@ -104,18 +104,15 @@ User: {self.current_user}
        return self.tickets.get(id)
 
     def update_status(self, id):
+        valid_status = ["open", "in-progress", "resolved"]
         ticket =self.find_ticket(id)
         if not ticket:
             return "ticket not found"
-
+        
             
         if ticket["status"] == "open" and ticket["assigned_to"] == "None":
-            return ticket["status"] '
-        elif ticket["status"] == "open" and ticket["assigned_to"] is not "None":
-                print()
-        elif ticket["status"] == "open" and ticket["assigned_to"] is not "None":
-            ticket["status"] = "in-progress"
-
+            return f"ticket has not been assigned so its ticket["status"] '
+       
 
     def assign_tickets(self):
         id = input("Enter ticket ID: ")
