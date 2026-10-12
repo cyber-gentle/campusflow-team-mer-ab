@@ -60,8 +60,9 @@ class TicketManager:
         ticket = add_ticket(
             self.tickets, title, category, urgency, affected_users
         )
-        print(f"Created ticket {ticket['id']}.")
         self._save_tickets()
+        print(f"Created ticket {ticket['id']}.")
+        
 
     def _get_choice(self, prompt, options):
         print(f"\n----->{prompt}<-----")
