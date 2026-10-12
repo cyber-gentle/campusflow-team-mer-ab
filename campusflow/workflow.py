@@ -1,5 +1,5 @@
-from .storage import load_tickets, save_tickets
-from .tickets import create_ticket as add_ticket
+from campusflow.storage import load_tickets, save_tickets
+from campusflow.tickets import create_ticket as add_ticket
 
 
 class TicketManager:
@@ -100,7 +100,60 @@ User: {self.current_user}
     def _save_tickets(self):
         print(save_tickets(self.tickets_file_name, self.tickets))
 
+    def find_ticket(self, id):
+       return self.tickets.get(id)
 
+    def update_status(self, id):
+        ticket =self.find_ticket(id)
+        if not ticket:
+            return "ticket not found"
+
+            
+        if ticket["status"] == "open" and ticket["assigned_to"] == "None":
+            return ticket["status"] '
+        elif ticket["status"] == "open" and ticket["assigned_to"] is not "None":
+                print()
+        elif ticket["status"] == "open" and ticket["assigned_to"] is not "None":
+            ticket["status"] = "in-progress"
+
+
+    def assign_tickets(self):
+        id = input("Enter ticket ID: ")
+
+        mentors_available = ["Kinglsey", "Gabriel", "Godswill", "Isaac"]
+
+        print(f"Please chose mentor to be assigned to from the list of available mentors given: {mentors_available}")
+
+        mentor_picked = input("Enter name here: ").strip().title()
+
+        if mentor_picked  not in mentors_available:
+            return f"invalid {mentor_picked} please select {mentors_available}"
+        
+        ticket = self.find_ticket(id)
+
+        if ticket is None:
+            print("Ticket not found.")
+            return False
+
+        if ticket["assigned_to"] == "None":
+            ticket["assigned_to"] = mentor_picked
+            self._save_tickets()
+
+        else:
+            print(f"ticket already assigned to {ticket['assigned_to']}")
+            print(f"confirm change to {mentor_picked}; 1. Yes 2. No")
+
+            choice = get_users_choice()
+            if choice == 1:
+                ticket["assigned_to"] = mentor_picked
+                self._save_tickets()
+            else:
+                return False
+
+                
+
+        
+            
 def get_users_choice() -> int:
     users_choice = input("Enter your choice: ")
 
@@ -108,4 +161,4 @@ def get_users_choice() -> int:
         return int(users_choice)
     except ValueError:
         return 0
-        return 0
+   
