@@ -1,13 +1,8 @@
+VALID_CATEGORIES = {"Network", "Hardware", "Software", "Other"}
+
+
 def calculate_priority(urgency: str, affected_users: int) -> str:
-    if not isinstance(urgency, str):
-        return "Urgency must be low, medium, or high."
-    urgency = urgency.strip().lower()
-    if urgency not in ["low", "medium", "high"]:
-        return "Urgency must be low, medium, or high."
-    if not isinstance(affected_users, int) or isinstance(affected_users, bool):
-        return "Affected users must be a positive integer."
-    if affected_users < 1:
-        return "Affected users must be a positive integer."
+    urgency = str(urgency).strip().lower()
 
     if urgency == "high" and affected_users >= 10:
         return "critical"
@@ -18,21 +13,42 @@ def calculate_priority(urgency: str, affected_users: int) -> str:
     return "low"
 
 
-def create_ticket(tickets, title, category, urgency, affected_users):
+def create_ticket(
+    tickets: dict[str, dict],
+    title: str,
+    category: str,
+    urgency: str,
+    affected_users: int,
+) -> dict | str:
     title = str(title).strip()
     if not title:
         return "Title must not be blank."
 
-    valid_categories = ["Network", "Hardware", "Software", "Other"]
     category = str(category).strip().title()
-    if category not in valid_categories:
+    if category not in VALID_CATEGORIES:
         return "Category must be Network, Hardware, Software, or Other."
 
     urgency = str(urgency).strip().lower()
 
     priority = calculate_priority(urgency, affected_users)
 
-    next_number = len(tickets) + 1
+<<<<<<< Updated upstream
+    highest_id = 0
+    for key in tickets:
+        clean_id = str(key).replace("T", "")
+        if clean_id.isdigit():
+            number = int(clean_id)
+            if number > highest_id:
+                highest_id = number
+
+    next_number = highest_id + 1
+=======
+    if tickets:
+        last_ticket = next(reversed(tickets.values()))
+        next_number = int(last_ticket["id"][1:]) + 1
+    else:
+        next_number = 1
+>>>>>>> Stashed changes
     ticket_id = f"T{next_number:03d}"
 
     ticket = {
@@ -43,8 +59,9 @@ def create_ticket(tickets, title, category, urgency, affected_users):
         "affected_users": affected_users,
         "priority": priority,
         "status": "open",
-        "assigned_to": None,
+        "assigned_to": "None",
     }
 
-    tickets[ticket_id[1:]] = ticket
+    tickets[ticket_id] = ticket
     return ticket
+
