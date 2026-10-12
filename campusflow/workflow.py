@@ -89,4 +89,3 @@ def get_users_choice() -> int:
         return int(users_choice)
     except ValueError:
         return 0
-   
