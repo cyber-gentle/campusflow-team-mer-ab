@@ -18,7 +18,13 @@ def calculate_priority(urgency: str, affected_users: int) -> str:
     return "low"
 
 
-def create_ticket(tickets, title, category, urgency, affected_users):
+def create_ticket(
+    tickets: dict[str, dict],
+    title: str,
+    category: str,
+    urgency: str,
+    affected_users: int,
+) -> dict | str:
     title = str(title).strip()
     if not title:
         return "Title must not be blank."
@@ -32,7 +38,15 @@ def create_ticket(tickets, title, category, urgency, affected_users):
 
     priority = calculate_priority(urgency, affected_users)
 
-    next_number = len(tickets) + 1
+    highest_id = 0
+    for key in tickets:
+        clean_id = str(key).replace("T", "")
+        if clean_id.isdigit():
+            number = int(clean_id)
+            if number > highest_id:
+                highest_id = number
+
+    next_number = highest_id + 1
     ticket_id = f"T{next_number:03d}"
 
     ticket = {
@@ -43,8 +57,9 @@ def create_ticket(tickets, title, category, urgency, affected_users):
         "affected_users": affected_users,
         "priority": priority,
         "status": "open",
-        "assigned_to": None,
+        "assigned_to": "None",
     }
 
-    tickets[ticket_id[1:]] = ticket
+    tickets[ticket_id] = ticket
     return ticket
+
