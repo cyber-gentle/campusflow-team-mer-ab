@@ -1,8 +1,23 @@
-VALID_CATEGORIES = {"Network", "Hardware", "Software", "Other"}
-VALID_URGENCIES = {"low", "medium", "high"}
+"""
+Ticket creation, priority calculation, and ID generation for CampusFlow.
+"""
+
+from campusflow.validation import (
+    VALID_CATEGORIES,
+    VALID_STATUSES,
+    VALID_URGENCIES,
+    validate_ticket_data,
+)
 
 
 def calculate_priority(urgency: str, affected_users: int) -> str:
+    """
+    Calculates priority strictly following precedence rules:
+      1. Critical: high urgency AND >= 10 affected users
+      2. High:     high urgency OR >= 10 affected users
+      3. Medium:   medium urgency OR >= 3 affected users
+      4. Low:      all remaining valid tickets
+    """
     urgency = str(urgency).strip().lower()
 
     match (urgency, affected_users):
@@ -20,30 +35,11 @@ def calculate_priority(urgency: str, affected_users: int) -> str:
             return "low"
 
 
-def create_ticket(
-    tickets: dict[str, dict],
-    title: str,
-    category: str,
-    urgency: str,
-    affected_users: int,
-) -> dict | str:
-    title = str(title).strip()
-    if not title:
-        return "Title must not be blank."
-
-    category = str(category).strip().title()
-    if category not in VALID_CATEGORIES:
-        return "Category must be Network, Hardware, Software, or Other."
-
-    urgency = str(urgency).strip().lower()
-    if urgency not in VALID_URGENCIES:
-        return "Urgency must be low, medium, or high."
-
-    if not isinstance(affected_users, int) or isinstance(affected_users, bool) or affected_users < 1:
-        return "Affected users must be a positive integer."
-
-    priority = calculate_priority(urgency, affected_users)
-
+def next_ticket_id(tickets: dict) -> str:
+    """
+    Calculates the next unique sequential ticket ID (T001, T002, ...)
+    by inspecting existing keys in the ticket dictionary.
+    """
     highest_id = 0
     for key in tickets:
         clean_id = str(key).replace("T", "")
@@ -52,20 +48,46 @@ def create_ticket(
             if number > highest_id:
                 highest_id = number
 
-    next_number = highest_id + 1
-    ticket_id = f"T{next_number:03d}"
+    return f"T{highest_id + 1:03d}"
+
+
+def create_ticket(
+    tickets: dict[str, dict],
+    title: str,
+    category: str,
+    urgency: str,
+    affected_users: int,
+    raise_on_error: bool = False,
+) -> dict | str:
+    """
+    Validates inputs and creates a new ticket.
+    Appends the new ticket with 'notes': [] and 'assigned_to': None.
+    If raise_on_error is True, raises ValueError on invalid input;
+    otherwise returns a descriptive error string.
+    """
+    try:
+        clean_title, clean_category, clean_urgency, clean_users = validate_ticket_data(
+            title, category, urgency, affected_users
+        )
+    except ValueError as e:
+        if raise_on_error:
+            raise
+        return str(e)
+
+    priority = calculate_priority(clean_urgency, clean_users)
+    ticket_id = next_ticket_id(tickets)
 
     ticket = {
         "id": ticket_id,
-        "title": title,
-        "category": category,
-        "urgency": urgency,
-        "affected_users": affected_users,
+        "title": clean_title,
+        "category": clean_category,
+        "urgency": clean_urgency,
+        "affected_users": clean_users,
         "priority": priority,
         "status": "open",
-        "assigned_to": "None",
+        "assigned_to": None,
+        "notes": [],
     }
 
     tickets[ticket_id] = ticket
     return ticket
-

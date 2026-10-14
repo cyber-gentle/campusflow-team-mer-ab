@@ -280,12 +280,15 @@ Assigned To:    {ticket.get('assigned_to') or 'None'}
             print(f"Message length ({len(message)}) must be between 5 and 300 characters.")
             message = input("Enter follow-up note message (5-300 characters): ").strip()
 
-        result = add_note(ticket, author, message)
-        if isinstance(result, dict):
-            self._save_tickets()
-            print(f"Successfully added note [{result['note_id']}] to ticket {ticket['id']}.")
-        else:
-            print(f"Failed to add note: {result}")
+        try:
+            result = add_note(ticket, author, message)
+            if isinstance(result, dict):
+                self._save_tickets()
+                print(f"Successfully added note [{result['note_id']}] to ticket {ticket['id']}.")
+            else:
+                print(f"Failed to add note: {result}")
+        except ValueError as err:
+            print(f"Failed to add note: {err}")
 
     def view_ticket_notes(self):
         ticket = self.find_ticket()
@@ -301,6 +304,9 @@ Assigned To:    {ticket.get('assigned_to') or 'None'}
         ticket = self.find_ticket()
         if isinstance(ticket, str):
             return ticket
+
+        if ticket.get("status") == "resolved":
+            return "Cannot assign or reassign a resolved ticket. Please reopen the ticket first."
 
         mentor_picked = self._get_choice("Select Staff to assign", mentors_available)
         current_assigned = str(ticket.get("assigned_to") or "None")
@@ -326,7 +332,6 @@ Assigned To:    {ticket.get('assigned_to') or 'None'}
         ticket = self.find_ticket()
 
         if isinstance(ticket, str):
-            print(ticket)
             return ticket
 
         status = ticket["status"]

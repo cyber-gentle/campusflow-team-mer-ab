@@ -116,16 +116,16 @@ class TestWorkflowAndReports(unittest.TestCase):
         sys.stdout = sys.__stdout__
         output = captured.getvalue()
 
-        # Both T002 and T003 are critical; T002 must appear before T003
+        # Open tickets T002 and T003 are critical; T002 must appear before T003
         pos_t002 = output.find("T002")
         pos_t003 = output.find("T003")
-        pos_t004 = output.find("T004")  # high priority
-        pos_t001 = output.find("T001")  # low priority
+        pos_t001 = output.find("T001")  # open low priority
+        pos_t004 = output.find("T004")  # in_progress ticket -> MUST NOT appear in open queue
 
-        self.assertTrue(pos_t002 != -1 and pos_t003 != -1 and pos_t004 != -1 and pos_t001 != -1)
+        self.assertTrue(pos_t002 != -1 and pos_t003 != -1 and pos_t001 != -1)
+        self.assertEqual(pos_t004, -1, "in_progress ticket T004 must not appear in Open Work Queue")
         self.assertLess(pos_t002, pos_t003, "T002 should appear before T003 due to earlier numeric ID")
-        self.assertLess(pos_t003, pos_t004, "Critical tickets should appear before High tickets")
-        self.assertLess(pos_t004, pos_t001, "High tickets should appear before Low tickets")
+        self.assertLess(pos_t003, pos_t001, "Critical tickets should appear before Low tickets")
 
     def test_find_ticket_rejects_unknown_id(self):
         """Querying a non-existent ticket ID returns an error string."""
@@ -134,11 +134,11 @@ class TestWorkflowAndReports(unittest.TestCase):
         self.assertEqual(result, "Ticket not found.")
 
     def test_reports_handle_zero_tickets(self):
-        """Report generator cleanly handles zero tickets."""
+        """Scenario 10: Report generator cleanly handles zero tickets and displays 0.0%."""
         test_empty_file = "empty_report_test.json"
         save_tickets(test_empty_file, {})
         report = generate_ticket_report(test_empty_file)
-        self.assertEqual(report, "No ticket logged!")
+        self.assertIn("0.0%", report)
 
     def test_reports_with_populated_tickets(self):
         """Report generator correctly counts status and priority totals."""
