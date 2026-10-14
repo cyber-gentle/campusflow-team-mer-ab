@@ -214,7 +214,7 @@ Assigned To:    {ticket.get('assigned_to') or 'None'}
         if current_assigned == mentor_picked:
             return f"Already assigned to {mentor_picked}."
 
-        print(f"Confirm assignment from {current_assigned} to {mentor_picked}\n 1. Yes 2. No")
+        print(f"Confirm assignment from {current_assigned} to {mentor_picked}\n 1. Yes \n 2. No")
         choice = get_users_choice()
         if choice == 1:
             ticket["assigned_to"] = mentor_picked
@@ -233,26 +233,26 @@ Assigned To:    {ticket.get('assigned_to') or 'None'}
         status = ticket["status"]
         assigned_to = ticket.get("assigned_to")
 
-        if status == "open":
-            if assigned_to is None or assigned_to == "None" or not assigned_to:
-                print("Ticket must be assigned before it can move to in-progress.")
+        match status:
+            case "open":
+                if not assigned_to or assigned_to == "None":
+                    print("Ticket must be assigned before it can move to in-progress.")
+                    return "Status not updated."
+                ticket["status"] = "in-progress"
+
+            case "in-progress" | "in_progress":
+                ticket["status"] = "resolved"
+
+            case "resolved":
+                ticket["status"] = "closed"
+
+            case "closed":
+                print("Ticket is already closed.")
                 return "Status not updated."
 
-            ticket["status"] = "in-progress"
-
-        elif status == "in-progress":
-            ticket["status"] = "resolved"
-
-        elif status == "resolved":
-            ticket["status"] = "closed"
-
-        elif status == "closed":
-            print("Ticket is already closed.")
-            return "Status not updated."
-
-        else:
-            print("Invalid ticket status.")
-            return "Status not updated."
+            case _:
+                print("Invalid ticket status.")
+                return "Status not updated."
 
         self._save_tickets()
         return (f"Ticket status successfully updated to '{ticket['status']}'.")
