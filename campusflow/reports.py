@@ -1,4 +1,5 @@
 from campusflow.storage import load_tickets
+
 def generate_ticket_report(data_file_name: str) -> str:
     """Generate a summary of all tickets."""
     message, tickets = load_tickets(data_file_name)
@@ -19,27 +20,23 @@ def generate_ticket_report(data_file_name: str) -> str:
         return "No ticket logged!"
 
     for ticket in tickets.values():
+        match ticket.get("status"):
+            case "open":
+                by_status["open"] += 1
+            case "in_progress" | "in-progress":
+                by_status["in_progress"] += 1
+            case "resolved":
+                by_status["resolved"] += 1
 
-        if ticket["status"] == "open":
-            by_status["open"] += 1
-
-        elif ticket["status"] == "in_progress" or ticket["status"] == "in-progress":
-            by_status["in_progress"] += 1
-
-        elif ticket["status"] == "resolved":
-            by_status["resolved"] += 1
-
-        if ticket["priority"] == "critical":
-            by_priority["critical"] += 1
-
-        elif ticket["priority"] == "high":
-            by_priority["high"] += 1
-    
-        elif ticket["priority"] == "medium":
-            by_priority["medium"] += 1
-
-        elif ticket["priority"] == "low":
-            by_priority["low"] += 1
+        match ticket.get("priority"):
+            case "critical":
+                by_priority["critical"] += 1
+            case "high":
+                by_priority["high"] += 1
+            case "medium":
+                by_priority["medium"] += 1
+            case "low":
+                by_priority["low"] += 1
 
         total_tickets += 1
 
