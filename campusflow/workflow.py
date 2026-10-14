@@ -207,6 +207,9 @@ Assigned To:    {ticket.get('assigned_to') or 'None'}
         if isinstance(ticket, str):
             return ticket
 
+        if ticket.get("status") == "resolved":
+            return "Cannot assign or reassign a resolved ticket. Please reopen the ticket first."
+
         mentor_picked = self._get_choice("Select Staff to assign", mentors_available)
         current_assigned = str(ticket.get("assigned_to") or "None")
 
@@ -231,7 +234,6 @@ Assigned To:    {ticket.get('assigned_to') or 'None'}
         ticket = self.find_ticket()
 
         if isinstance(ticket, str):
-            print(ticket)
             return ticket
 
         status = ticket["status"]
