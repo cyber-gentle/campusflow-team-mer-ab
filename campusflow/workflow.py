@@ -1,3 +1,4 @@
+from campusflow.reports import generate_ticket_report
 from campusflow.storage import load_tickets, save_tickets
 from campusflow.tickets import create_ticket as add_ticket
 
@@ -47,18 +48,30 @@ User: {self.current_user}
                 case 1:
                     self.create_ticket()
 
+                case 2:
+                    self.list_all_tickets()
+
+                case 3:
+                    self.view_ticket_details()
+
                 case 4:
                     print(self.assign_tickets())
 
                 case 5:
                     print(self.update_status())
 
-                case 2 | 3 | 6 | 7:
-                    print("This option is not available yet.")
+                case 6:
+                    self.view_work_queue()
+
+                case 7:
+                    print(generate_ticket_report(self.tickets_file_name))
 
                 case 8:
                     print("Exiting...")
                     break
+
+                case _:
+                    print("Select a valid choice.")
 
 
     def create_ticket(self):
@@ -123,35 +136,92 @@ User: {self.current_user}
 
 
 
+    def list_all_tickets(self):
+        if not self.tickets:
+            print("\nNo tickets logged!")
+            return
+
+        print(f"\n{'ID':<8} {'Title':<25} {'Category':<12} {'Priority':<10} {'Status':<12} {'Assigned To':<12}")
+        print("-" * 80)
+        for ticket in self.tickets.values():
+            assigned = str(ticket.get("assigned_to") or "None")
+            title = ticket.get("title", "")
+            if len(title) > 22:
+                title = title[:21] + "..."
+            print(f"{ticket['id']:<8} {title:<25} {ticket.get('category', ''):<12} {ticket.get('priority', ''):<10} {ticket.get('status', ''):<12} {assigned:<12}")
+
+    def view_ticket_details(self):
+        ticket = self.find_ticket()
+        if isinstance(ticket, str):
+            print(ticket)
+            return
+
+        print(f"""
+------------------------------------
+           TICKET DETAILS           
+------------------------------------
+ID:             {ticket['id']}
+Title:          {ticket.get('title', '')}
+Category:       {ticket.get('category', '')}
+Urgency:        {ticket.get('urgency', '')}
+Affected Users: {ticket.get('affected_users', '')}
+Priority:       {ticket.get('priority', '')}
+Status:         {ticket.get('status', '')}
+Assigned To:    {ticket.get('assigned_to') or 'None'}
+------------------------------------""")
+
+    def view_work_queue(self):
+        priority_rank = {"critical": 1, "high": 2, "medium": 3, "low": 4}
+        active_tickets = [
+            t for t in self.tickets.values()
+            if t.get("status") in ("open", "in-progress", "in_progress")
+        ]
+
+        if not active_tickets:
+            print("\nNo active tickets in the work queue.")
+            return
+
+        active_tickets.sort(
+            key=lambda t: priority_rank.get(str(t.get("priority", "")).lower(), 5)
+        )
+
+        print("\n================================ WORK QUEUE ================================")
+        print(f"{'Priority':<10} {'ID':<8} {'Title':<25} {'Category':<12} {'Status':<12} {'Assigned To':<12}")
+        print("-" * 80)
+        for ticket in active_tickets:
+            assigned = str(ticket.get("assigned_to") or "None")
+            title = ticket.get("title", "")
+            if len(title) > 22:
+                title = title[:21] + "..."
+            print(f"{ticket.get('priority', ''):<10} {ticket['id']:<8} {title:<25} {ticket.get('category', ''):<12} {ticket.get('status', ''):<12} {assigned:<12}")
+        print("============================================================================")
+
     def assign_tickets(self) -> str:
-            
-            mentors_available = ["Kingsley", "Gabriel", "Godswill", "Isaac"]
+        mentors_available = ["Kingsley", "Gabriel", "Godswill", "Isaac"]
 
-            ticket = self.find_ticket()
-            
-            mentor_picked = self._get_choice("Select Staff to assign", mentors_available)
-            
+        ticket = self.find_ticket()
+        if isinstance(ticket, str):
+            return ticket
 
-            if isinstance(ticket, str):
-                print(ticket)
-                return ticket
-            
-            
-            if ticket["assigned_to"].title() == "None":
-                ticket["assigned_to"] = mentor_picked
-                self._save_tickets()
-                return
-            if ticket["assigned_to"].title() == mentor_picked:
-                return f"Already assigned to {mentor_picked}"
+        mentor_picked = self._get_choice("Select Staff to assign", mentors_available)
+        current_assigned = str(ticket.get("assigned_to") or "None")
 
-            print(f"confirm assignment from {ticket["assigned_to"]} to {mentor_picked}\n 1. Yes 2. No")
-            choice = get_users_choice()
-            if choice == 1:
-                ticket["assigned_to"] = mentor_picked
-                self._save_tickets()
-                
-            else:
-                return
+        if current_assigned in ("None", ""):
+            ticket["assigned_to"] = mentor_picked
+            self._save_tickets()
+            return f"Ticket {ticket['id']} successfully assigned to {mentor_picked}."
+
+        if current_assigned == mentor_picked:
+            return f"Already assigned to {mentor_picked}."
+
+        print(f"Confirm assignment from {current_assigned} to {mentor_picked}\n 1. Yes 2. No")
+        choice = get_users_choice()
+        if choice == 1:
+            ticket["assigned_to"] = mentor_picked
+            self._save_tickets()
+            return f"Ticket {ticket['id']} successfully reassigned to {mentor_picked}."
+        else:
+            return "Assignment cancelled."
 
     def update_status(self) -> str:
         ticket = self.find_ticket()
