@@ -32,7 +32,6 @@ def create_ticket(
 
     priority = calculate_priority(urgency, affected_users)
 
-<<<<<<< Updated upstream
     highest_id = 0
     for key in tickets:
         clean_id = str(key).replace("T", "")
@@ -42,13 +41,6 @@ def create_ticket(
                 highest_id = number
 
     next_number = highest_id + 1
-=======
-    if tickets:
-        last_ticket = next(reversed(tickets.values()))
-        next_number = int(last_ticket["id"][1:]) + 1
-    else:
-        next_number = 1
->>>>>>> Stashed changes
     ticket_id = f"T{next_number:03d}"
 
     ticket = {
