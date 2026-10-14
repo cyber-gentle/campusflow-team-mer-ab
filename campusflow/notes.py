@@ -88,3 +88,18 @@ def get_ticket_notes(ticket: dict) -> list[dict]:
         return []
     notes = ticket.get("notes") or []
     return sorted(notes, key=lambda n: str(n.get("note_id", "")))
+
+
+def format_notes_display(ticket: dict) -> str:
+    """Format all notes of a ticket into a clean readable string."""
+    notes = get_ticket_notes(ticket)
+    if not notes:
+        return f"No follow-up notes found for ticket {ticket.get('id', 'N/A')}."
+
+    lines = [f"--- Follow-up Notes for {ticket.get('id', 'N/A')} ({len(notes)} total) ---"]
+    for note in notes:
+        lines.append(f"[{note.get('note_id', 'N/A')}] By {note.get('author', 'Anonymous')}:")
+        lines.append(f"    {note.get('message', '')}")
+    lines.append("-" * 55)
+    return "\n".join(lines)
+
