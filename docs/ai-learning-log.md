@@ -37,6 +37,28 @@
 * **Related file/commit**: `campusflow/storage.py`, `tests/test_storage.py`
 * **What I can now explain without AI**: How to design defensive I/O boundaries that protect existing persistent data from silent loss.
 
+### Interaction #4 — Strict Integer Type Validation (Rejecting Booleans in Python)
+* **Problem**: Preventing boolean values (`True`/`False`) from passing integer validation for `affected_users`.
+* **My initial understanding**: I assumed `isinstance(val, int)` was sufficient to validate that `affected_users` is an integer.
+* **Prompt to AI**: "Why does isinstance(True, int) return True in Python and how do you ensure an argument is strictly an integer and not a boolean without type checking everything twice?"
+* **Useful AI guidance**: AI explained that `bool` is a historical subclass of `int` in Python (`issubclass(bool, int)` is `True`). It suggested using `type(val) is int`.
+* **My independent experiment/test**: Tested `type(True) is int` (which is `False`) vs `isinstance(val, int) and not isinstance(val, bool)`. While `type()` works, `isinstance(val, int) and not isinstance(val, bool)` is more explicit and keeps inheritance support if custom int subclasses are ever introduced.
+* **Verification source or result**: Verified in REPL and authored `tests/test_validation.py:test_ac_a2_invalid_affected_users_rejected_with_value_error`.
+* **Decision**: **Accepted and applied** in `campusflow/validation.py:validate_affected_users`.
+* **Related file/commit**: `campusflow/validation.py`, `tests/test_validation.py`
+* **What I can now explain without AI**: Why booleans inherit from `int` in Python and how to structure strict scalar type validators.
+
+### Interaction #5 — Critical AI Evaluation: Atomic File Replacement vs Hardcoded Temp Files
+* **Problem**: Implementing atomic JSON saves so a process interruption never truncates persistent data.
+* **My initial understanding**: Writing directly to `open(file, 'w')` followed by `json.dump()` is how persistence is normally handled.
+* **Prompt to AI**: "How can I prevent corrupted JSON files if saving fails halfway in Python standard library?"
+* **Useful AI guidance**: AI suggested writing to a fixed temporary file named `file_path + ".tmp"` and then calling `os.rename()`.
+* **My independent experiment/test**: Tested `os.rename()` on an existing destination file on Windows/POSIX and considered concurrent access. On Windows, `os.rename()` raises `FileExistsError` if destination exists. Moreover, hardcoding `.tmp` creates collisions in multi-test execution.
+* **Verification source or result**: Python official `os.replace` documentation: `os.replace()` is an atomic, cross-platform replacement that overwrites the target file without raising `FileExistsError`.
+* **Decision**: **Rejected and improved** AI suggestion by using `tempfile.NamedTemporaryFile(dir=..., delete=False)` combined with `os.replace()`.
+* **Related file/commit**: `campusflow/storage.py:save_tickets`.
+* **What I can now explain without AI**: The difference between `os.rename` and `os.replace` and how atomic file staging protects databases from partial write corruption.
+
 ---
 
 ## Fellow: Merit Nnamani (Engineer B)
