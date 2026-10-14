@@ -73,3 +73,15 @@
 * **Decision**: **Accepted and improved** with dedicated user messaging and persistence saving.
 * **Related file/commit**: `campusflow/workflow.py:update_status`, `tests/test_workflow.py`
 * **What I can now explain without AI**: How to implement guarded state machine transitions that prevent accidental workflow corruption.
+
+### Interaction #4 — Multi-Filter Composition & Case-Insensitive Matching
+* **Problem**: How to compose multiple optional search filters cleanly using logical AND, while allowing flexible case-insensitive substring matching on titles.
+* **My initial understanding**: Multiple filters might require deeply nested if-statements for each permutation of active filters.
+* **Prompt to AI**: "What is a clean functional pattern in Python to apply multiple optional search filters to a list of dicts without deeply nested if statements?"
+* **Useful AI guidance**: AI showed the early-exit loop pattern: if a filter is specified and the record doesn't match, `continue`; if it survives all active filters, append to results. It also recommended `.casefold()` over `.lower()` for robust Unicode case-insensitivity.
+* **My independent experiment/test**: Implemented `filter_tickets()` with early-continue checks for title, category, status, and priority. Tested combining title='wifi' + category='Network' + status='open' on a 4-ticket sample.
+* **Verification source or result**: `tests/test_search.py:test_combined_filters_use_logical_and`.
+* **Decision**: **Accepted and applied** to `campusflow/search.py`.
+* **Related file/commit**: `campusflow/search.py`, `tests/test_search.py`
+* **What I can now explain without AI**: How to build clean, maintainable multi-attribute filtering pipelines in Python without combinatorial complexity.
+
