@@ -2,6 +2,7 @@ from campusflow.storage import load_tickets, save_tickets
 from campusflow.tickets import create_ticket as add_ticket
 
 
+
 class TicketManager:
 
     tickets_file_name = "tickets_logs.json"
@@ -39,25 +40,26 @@ User: {self.current_user}
 """)
             users_choice = get_users_choice()
 
-            if users_choice == 1:
-                self.create_ticket()
-            
-            elif users_choice == 8:
-                print("Exiting...")
-                break
-            
-            elif users_choice in range(2, 8):
-                if self.current_user == "standard_user" and users_choice in self.admin_only_options:
+            match users_choice:
+                case _ if self.current_user == "standard_user" and users_choice in self.admin_only_options:
                     print("This option is restricted to administrators.")
 
-                elif users_choice == 4:
+                case 1:
+                    self.create_ticket()
+
+                case 4:
                     print(self.assign_tickets())
 
-                elif users_choice == 5:
+                case 5:
                     print(self.update_status())
 
-                else:
+                case 2 | 3 | 6 | 7:
                     print("This option is not available yet.")
+
+                case 8:
+                    print("Exiting...")
+                    break
+
 
     def create_ticket(self):
         title = input("Enter ticket title: ").strip()
@@ -104,8 +106,10 @@ User: {self.current_user}
 
 
 
+
     def _save_tickets(self):
         print(save_tickets(self.tickets_file_name, self.tickets))
+
 
 
     def find_ticket(self) -> dict | str:
@@ -116,6 +120,8 @@ User: {self.current_user}
             return "Ticket not found."
 
         return ticket
+
+
 
     def assign_tickets(self) -> str:
             
