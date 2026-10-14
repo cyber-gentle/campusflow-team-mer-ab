@@ -22,11 +22,14 @@ def load_tickets(file_name: str) -> tuple[str, dict[str, dict]]:
     file_path = f"./data/{file_name}"
 
     try:
-        with open( file_path, 'r') as file:
-            return "", json.load(file)
-    except (FileNotFoundError):
-        return f"\n{file_path} not found.", {}
-    except (json.JSONDecodeError):
-         return f"\n{file_path} is empty. Starting with a fresh dictionary.", {}
+        with open(file_path, 'r') as file:
+            content = file.read().strip()
+            if not content:
+                return f"\n{file_path} is empty. Starting with a fresh dictionary.", {}
+            return "", json.loads(content)
+    except FileNotFoundError:
+        return f"\n{file_path} not found. Starting with a fresh dictionary.", {}
+    except json.JSONDecodeError as e:
+        return f"\nError: Malformed JSON in {file_path} ({e}). Please inspect file before saving to avoid data loss.", {}
 
 

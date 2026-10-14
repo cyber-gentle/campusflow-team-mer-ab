@@ -181,9 +181,13 @@ Assigned To:    {ticket.get('assigned_to') or 'None'}
             print("\nNo active tickets in the work queue.")
             return
 
-        active_tickets.sort(
-            key=lambda t: priority_rank.get(str(t.get("priority", "")).lower(), 5)
-        )
+        def _sort_key(ticket):
+            rank = priority_rank.get(str(ticket.get("priority", "")).lower(), 5)
+            ticket_id_str = str(ticket.get("id", "")).replace("T", "")
+            ticket_num = int(ticket_id_str) if ticket_id_str.isdigit() else 999999
+            return (rank, ticket_num)
+
+        active_tickets.sort(key=_sort_key)
 
         print("\n================================ WORK QUEUE ================================")
         print(f"{'Priority':<10} {'ID':<8} {'Title':<25} {'Category':<12} {'Status':<12} {'Assigned To':<12}")
@@ -214,7 +218,7 @@ Assigned To:    {ticket.get('assigned_to') or 'None'}
         if current_assigned == mentor_picked:
             return f"Already assigned to {mentor_picked}."
 
-        print(f"Confirm assignment from {current_assigned} to {mentor_picked}\n 1. Yes 2. No")
+        print(f"Confirm assignment from {current_assigned} to {mentor_picked}\n 1. Yes \n 2. No")
         choice = get_users_choice()
         if choice == 1:
             ticket["assigned_to"] = mentor_picked
@@ -233,26 +237,28 @@ Assigned To:    {ticket.get('assigned_to') or 'None'}
         status = ticket["status"]
         assigned_to = ticket.get("assigned_to")
 
-        if status == "open":
-            if assigned_to is None or assigned_to == "None" or not assigned_to:
-                print("Ticket must be assigned before it can move to in-progress.")
+        match status:
+            case "open":
+                if not assigned_to or assigned_to == "None":
+                    print("Ticket must be assigned before it can move to in-progress.")
+                    return "Status not updated."
+                ticket["status"] = "in_progress"
+
+            case "in-progress" | "in_progress":
+                ticket["status"] = "resolved"
+
+            case "resolved":
+                print(f"Ticket {ticket['id']} is currently resolved. Reopen to 'open'?\n 1. Yes \n 2. No")
+                choice = get_users_choice()
+                if choice == 1:
+                    ticket["status"] = "open"
+                    self._save_tickets()
+                    return f"Ticket {ticket['id']} successfully reopened and set to 'open'."
+                return "Resolved ticket was not modified."
+
+            case _:
+                print("Invalid ticket status.")
                 return "Status not updated."
-
-            ticket["status"] = "in-progress"
-
-        elif status == "in-progress":
-            ticket["status"] = "resolved"
-
-        elif status == "resolved":
-            ticket["status"] = "closed"
-
-        elif status == "closed":
-            print("Ticket is already closed.")
-            return "Status not updated."
-
-        else:
-            print("Invalid ticket status.")
-            return "Status not updated."
 
         self._save_tickets()
         return (f"Ticket status successfully updated to '{ticket['status']}'.")

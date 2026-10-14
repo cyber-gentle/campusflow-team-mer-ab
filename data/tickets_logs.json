@@ -9,7 +9,7 @@
         "status": "open",
         "assigned_to": null
     },
-    "002": {
+    "T002": {
         "id": "T002",
         "title": "wifi",
         "category": "Hardware",
@@ -18,5 +18,105 @@
         "priority": "high",
         "status": "open",
         "assigned_to": null
+    },
+    "T003": {
+        "id": "T003",
+        "title": "Library 2nd Floor WiFi dropping constantly",
+        "category": "Network",
+        "urgency": "high",
+        "affected_users": 45,
+        "priority": "critical",
+        "status": "in-progress",
+        "assigned_to": "Kingsley"
+    },
+    "T004": {
+        "id": "T004",
+        "title": "Lecture Hall 3 projector HDMI port damaged",
+        "category": "Hardware",
+        "urgency": "medium",
+        "affected_users": 80,
+        "priority": "high",
+        "status": "open",
+        "assigned_to": null
+    },
+    "T005": {
+        "id": "T005",
+        "title": "Canvas LMS grading portal throwing 502 error",
+        "category": "Software",
+        "urgency": "high",
+        "affected_users": 150,
+        "priority": "critical",
+        "status": "in-progress",
+        "assigned_to": "Gabriel"
+    },
+    "T006": {
+        "id": "T006",
+        "title": "Computer Lab B workstation 14 blue screening",
+        "category": "Hardware",
+        "urgency": "low",
+        "affected_users": 1,
+        "priority": "low",
+        "status": "open",
+        "assigned_to": null
+    },
+    "T007": {
+        "id": "T007",
+        "title": "Student dorm Block C ethernet wall jack broken",
+        "category": "Network",
+        "urgency": "medium",
+        "affected_users": 4,
+        "priority": "medium",
+        "status": "open",
+        "assigned_to": "Godswill"
+    },
+    "T008": {
+        "id": "T008",
+        "title": "SPSS statistical software license expired",
+        "category": "Software",
+        "urgency": "high",
+        "affected_users": 30,
+        "priority": "critical",
+        "status": "resolved",
+        "assigned_to": "Isaac"
+    },
+    "T009": {
+        "id": "T009",
+        "title": "Main gate student ID badge scanner offline",
+        "category": "Hardware",
+        "urgency": "high",
+        "affected_users": 200,
+        "priority": "critical",
+        "status": "in-progress",
+        "assigned_to": "Gabriel"
+    },
+    "T010": {
+        "id": "T010",
+        "title": "Campus email password reset link not delivering",
+        "category": "Software",
+        "urgency": "medium",
+        "affected_users": 12,
+        "priority": "high",
+        "status": "open",
+        "assigned_to": null
+    },
+    "T011": {
+        "id": "T011",
+        "title": "Chemistry Lab fume hood sensor alarm beeping",
+        "category": "Other",
+        "urgency": "high",
+        "affected_users": 15,
+        "priority": "critical",
+        "status": "resolved",
+        "assigned_to": "Isaac"
+    },
+    "T012": {
+        "id": "T012",
+        "title": "Faculty lounge printer out of toner cartridge",
+        "category": "Hardware",
+        "urgency": "low",
+        "affected_users": 8,
+        "priority": "medium",
+        "status": "open",
+        "assigned_to": "Kingsley"
     }
 }
