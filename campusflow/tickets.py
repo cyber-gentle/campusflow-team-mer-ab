@@ -1,4 +1,5 @@
 VALID_CATEGORIES = {"Network", "Hardware", "Software", "Other"}
+VALID_URGENCIES = {"low", "medium", "high"}
 
 
 def calculate_priority(urgency: str, affected_users: int) -> str:
@@ -35,6 +36,11 @@ def create_ticket(
         return "Category must be Network, Hardware, Software, or Other."
 
     urgency = str(urgency).strip().lower()
+    if urgency not in VALID_URGENCIES:
+        return "Urgency must be low, medium, or high."
+
+    if not isinstance(affected_users, int) or isinstance(affected_users, bool) or affected_users < 1:
+        return "Affected users must be a positive integer."
 
     priority = calculate_priority(urgency, affected_users)
 
