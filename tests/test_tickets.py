@@ -52,7 +52,7 @@ class TestTicketPriorityAndCreation(unittest.TestCase):
             urgency="low",
             affected_users=0
         )
-        self.assertEqual(result_zero, "Affected users must be a positive integer.")
+        self.assertEqual(result_zero, {"error": "Affected users must be a positive integer.", "success": False})
 
         result_neg = create_ticket(
             self.tickets,
@@ -61,7 +61,7 @@ class TestTicketPriorityAndCreation(unittest.TestCase):
             urgency="low",
             affected_users=-5
         )
-        self.assertEqual(result_neg, "Affected users must be a positive integer.")
+        self.assertEqual(result_neg, {"error": "Affected users must be a positive integer.", "success": False})
 
     def test_create_ticket_rejects_blank_title(self):
         """Blank or whitespace-only title is rejected."""
@@ -72,7 +72,7 @@ class TestTicketPriorityAndCreation(unittest.TestCase):
             urgency="high",
             affected_users=5
         )
-        self.assertEqual(result, "Title must not be blank.")
+        self.assertEqual(result, {"error": "Title must not be blank.", "success": False})
 
     def test_create_ticket_rejects_invalid_category(self):
         """Invalid category not in Network, Hardware, Software, Other is rejected."""
@@ -83,7 +83,7 @@ class TestTicketPriorityAndCreation(unittest.TestCase):
             urgency="medium",
             affected_users=2
         )
-        self.assertEqual(result, "Category must be Network, Hardware, Software, or Other.")
+        self.assertEqual(result, {"error": "Category must be Network, Hardware, Software, or Other.", "success": False})
 
     def test_create_ticket_rejects_invalid_urgency(self):
         """Invalid urgency not in low, medium, high is rejected."""
@@ -94,7 +94,7 @@ class TestTicketPriorityAndCreation(unittest.TestCase):
             urgency="urgent",
             affected_users=5
         )
-        self.assertEqual(result, "Urgency must be low, medium, or high.")
+        self.assertEqual(result, {"error": "Urgency must be low, medium, or high.", "success": False})
 
     def test_incremental_unique_ticket_ids(self):
         """Ticket IDs increment correctly as T001, T002, T003..."""

@@ -114,6 +114,10 @@ User: {self.current_user}
         ticket = add_ticket(
             self.tickets, title, category, urgency, affected_users
         )
+        if isinstance(ticket, dict) and ticket.get("error"):
+            print(f"Error: {ticket['error']}")
+            return
+
         self._save_tickets()
         print(f"Created ticket {ticket['id']}.")
 

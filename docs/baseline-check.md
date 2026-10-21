@@ -4,8 +4,8 @@
 **Sprint:** CampusFlow Next — Progression Sprint  
 **Audited Commit:** `10a8827` / `d9bf9ba`  
 **Engineer Roles:**
-* **Engineer A (Wealth Ibe):** Ticket Safety, State Mutation Invariants & Safe Storage (`feat/21-validation-and-notes`)
-* **Engineer B (Merit Nnamani):** Search, Reports, CLI Notes UI & Understanding Check (`feat/22-search-and-insights`)
+* **Engineer A (Wealth Ibe):** Ticket Safety, State Mutation Invariants & Safe Storage (`feat/7-validation-and-notes`)
+* **Engineer B (Merit Nnamani):** Search, Reports, CLI Notes UI & Understanding Check (`feat/9-search-and-insights`)
 
 ---
 
