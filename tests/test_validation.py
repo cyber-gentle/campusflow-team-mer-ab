@@ -60,11 +60,11 @@ class TestTicketValidationAndInvariants(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     validate_affected_users(val)
 
-    def test_ac_a2_create_ticket_raises_on_invalid_affected_users_when_requested(self):
-        """AC-A2: create_ticket raises ValueError when raise_on_error=True for invalid affected_users."""
+    def test_ac_a2_create_ticket_returns_error_dict_on_invalid_affected_users(self):
+        """AC-A2: create_ticket does not halt on error, but returns error details dict."""
         tickets = {}
-        with self.assertRaises(ValueError):
-            create_ticket(tickets, "Server down", "Network", "high", True, raise_on_error=True)
+        res = create_ticket(tickets, "Server down", "Network", "high", True, raise_on_error=True)
+        self.assertEqual(res, {"error": "Affected users must be a positive integer.", "success": False})
         self.assertEqual(len(tickets), 0, "Collection must remain empty on validation failure")
 
     def test_ac_a3_resolved_ticket_assignment_mutation_rejected(self):
@@ -124,8 +124,9 @@ class TestTicketValidationAndInvariants(unittest.TestCase):
 
         # Attempt to create with invalid boolean affected_users
         res = create_ticket(tickets, "Crashing attempt", "Network", "high", True)
-        self.assertIsInstance(res, str)
-        self.assertIn("positive integer", res)
+        self.assertIsInstance(res, dict)
+        self.assertFalse(res["success"])
+        self.assertIn("positive integer", res["error"])
 
         # Invariant check: collection size and keys are identical
         self.assertEqual(list(tickets.keys()), original_keys)

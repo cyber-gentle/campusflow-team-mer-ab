@@ -58,21 +58,19 @@ def create_ticket(
     urgency: str,
     affected_users: int,
     raise_on_error: bool = False,
-) -> dict | str:
+) -> dict:
     """
     Validates inputs and creates a new ticket.
     Appends the new ticket with 'notes': [] and 'assigned_to': None.
-    If raise_on_error is True, raises ValueError on invalid input;
-    otherwise returns a descriptive error string.
+    If validation fails, returns error details dictionary:
+    {"error": str(e), "success": False} without halting execution.
     """
     try:
         clean_title, clean_category, clean_urgency, clean_users = validate_ticket_data(
             title, category, urgency, affected_users
         )
     except ValueError as e:
-        if raise_on_error:
-            raise
-        return str(e)
+        return {"error": str(e), "success": False}
 
     priority = calculate_priority(clean_urgency, clean_users)
     ticket_id = next_ticket_id(tickets)
