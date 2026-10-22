@@ -64,16 +64,25 @@ def create_ticket(
     Appends the new ticket with 'notes': [] and 'assigned_to': None.
     If validation fails, returns error details dictionary:
     {"error": str(e), "success": False} without halting execution.
+    All sub-steps are encapsulated via nested inner helper functions.
     """
+
+    def _validate():
+        return validate_ticket_data(title, category, urgency, affected_users)
+
+    def _determine_priority(clean_urgency: str, clean_users: int) -> str:
+        return calculate_priority(clean_urgency, clean_users)
+
+    def _generate_ticket_id() -> str:
+        return next_ticket_id(tickets)
+
     try:
-        clean_title, clean_category, clean_urgency, clean_users = validate_ticket_data(
-            title, category, urgency, affected_users
-        )
+        clean_title, clean_category, clean_urgency, clean_users = _validate()
     except ValueError as e:
         return {"error": str(e), "success": False}
 
-    priority = calculate_priority(clean_urgency, clean_users)
-    ticket_id = next_ticket_id(tickets)
+    priority = _determine_priority(clean_urgency, clean_users)
+    ticket_id = _generate_ticket_id()
 
     ticket = {
         "id": ticket_id,

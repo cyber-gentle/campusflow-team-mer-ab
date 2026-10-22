@@ -66,8 +66,10 @@ class TestFollowUpNotesEngine(unittest.TestCase):
 
     def test_ac_a4_blank_author_rejected_without_consuming_id(self):
         """AC-A4: Blank or whitespace-only author is rejected and does not consume a note ID."""
-        with self.assertRaises(ValueError):
-            add_note(self.open_ticket, author="   ", message="Valid message here.")
+        res = add_note(self.open_ticket, author="   ", message="Valid message here.")
+        self.assertIsInstance(res, dict)
+        self.assertFalse(res.get("success", True))
+        self.assertIn("author", res.get("error", "").lower())
         
         # Invariant: notes list is empty and next note ID remains N001
         self.assertEqual(len(self.open_ticket["notes"]), 0)
@@ -78,8 +80,10 @@ class TestFollowUpNotesEngine(unittest.TestCase):
         short_messages = ["", "hi", "test", "   a   "]
         for msg in short_messages:
             with self.subTest(msg=msg):
-                with self.assertRaises(ValueError):
-                    add_note(self.open_ticket, author="Kingsley", message=msg)
+                res = add_note(self.open_ticket, author="Kingsley", message=msg)
+                self.assertIsInstance(res, dict)
+                self.assertFalse(res.get("success", True))
+                self.assertIn("message", res.get("error", "").lower())
 
         # Invariant check
         self.assertEqual(len(self.open_ticket["notes"]), 0)
@@ -88,8 +92,10 @@ class TestFollowUpNotesEngine(unittest.TestCase):
     def test_too_long_message_rejected(self):
         """Message exceeding 300 characters is rejected."""
         long_msg = "A" * 301
-        with self.assertRaises(ValueError):
-            add_note(self.open_ticket, author="Kingsley", message=long_msg)
+        res = add_note(self.open_ticket, author="Kingsley", message=long_msg)
+        self.assertIsInstance(res, dict)
+        self.assertFalse(res.get("success", True))
+        self.assertIn("message", res.get("error", "").lower())
         self.assertEqual(len(self.open_ticket["notes"]), 0)
 
     def test_ac_a5_note_on_resolved_ticket_rejected_accepted_after_reopen(self):
@@ -98,9 +104,10 @@ class TestFollowUpNotesEngine(unittest.TestCase):
         After explicit reopen to 'open', note addition succeeds.
         """
         # Step 1: Reject note on resolved ticket
-        with self.assertRaises(ValueError) as ctx:
-            add_note(self.resolved_ticket, author="Isaac", message="Attempting note on closed ticket.")
-        self.assertIn("resolved ticket", str(ctx.exception).lower())
+        res = add_note(self.resolved_ticket, author="Isaac", message="Attempting note on closed ticket.")
+        self.assertIsInstance(res, dict)
+        self.assertFalse(res.get("success", True))
+        self.assertIn("resolved ticket", res.get("error", "").lower())
         self.assertEqual(len(self.resolved_ticket["notes"]), 0)
 
         # Step 2: Reopen ticket

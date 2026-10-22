@@ -76,13 +76,17 @@ class TestEngineerBReportsAndQuiz(unittest.TestCase):
     def test_scenario06_invalid_note_rejected_without_consuming_id(self):
         """Scenario 06: Blank author or short message (<5 chars) rejected without consuming note ID."""
         t = self.fixtures["T001"]
-        # Blank author raises ValueError
-        with self.assertRaises(ValueError):
-            add_note(t, "   ", "Valid message here")
+        # Blank author returns error dict
+        res_blank = add_note(t, "   ", "Valid message here")
+        self.assertIsInstance(res_blank, dict)
+        self.assertFalse(res_blank.get("success", True))
+        self.assertIn("author", res_blank.get("error", "").lower())
 
-        # Too short message raises ValueError
-        with self.assertRaises(ValueError):
-            add_note(t, "Mentor A", "abc")
+        # Too short message returns error dict
+        res_short = add_note(t, "Mentor A", "abc")
+        self.assertIsInstance(res_short, dict)
+        self.assertFalse(res_short.get("success", True))
+        self.assertIn("message", res_short.get("error", "").lower())
 
         # Valid note added next must still receive N001 (not N003)
         n1 = add_note(t, "Mentor A", "Valid message after failure")
@@ -92,8 +96,10 @@ class TestEngineerBReportsAndQuiz(unittest.TestCase):
     def test_scenario07_resolved_ticket_rejects_notes_until_reopened(self):
         """Scenario 07: Resolved ticket rejects new notes; reopen enables notes again."""
         t = self.fixtures["T003"]  # resolved
-        with self.assertRaises(ValueError):
-            add_note(t, "Mentor A", "Trying to add note on resolved ticket")
+        res = add_note(t, "Mentor A", "Trying to add note on resolved ticket")
+        self.assertIsInstance(res, dict)
+        self.assertFalse(res.get("success", True))
+        self.assertIn("resolved ticket", res.get("error", "").lower())
 
         # Reopen ticket to open
         t["status"] = "open"
@@ -133,9 +139,10 @@ class TestEngineerBReportsAndQuiz(unittest.TestCase):
         import copy
         snapshot = copy.deepcopy(target_ticket)
 
-        # Attempt invalid note addition on resolved ticket raises ValueError
-        with self.assertRaises(ValueError):
-            add_note(target_ticket, "Intruder", "Illegal note injection")
+        # Attempt invalid note addition on resolved ticket returns error dict
+        res = add_note(target_ticket, "Intruder", "Illegal note injection")
+        self.assertIsInstance(res, dict)
+        self.assertFalse(res.get("success", True))
 
         # Invariant check: the ticket must remain byte-for-byte identical to its snapshot
         self.assertEqual(target_ticket, snapshot)

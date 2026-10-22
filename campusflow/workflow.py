@@ -284,15 +284,13 @@ Assigned To:    {ticket.get('assigned_to') or 'None'}
             print(f"Message length ({len(message)}) must be between 5 and 300 characters.")
             message = input("Enter follow-up note message (5-300 characters): ").strip()
 
-        try:
-            result = add_note(ticket, author, message)
-            if isinstance(result, dict):
-                self._save_tickets()
-                print(f"Successfully added note [{result['note_id']}] to ticket {ticket['id']}.")
-            else:
-                print(f"Failed to add note: {result}")
-        except ValueError as err:
-            print(f"Failed to add note: {err}")
+        result = add_note(ticket, author, message)
+        if isinstance(result, dict) and not result.get("error"):
+            self._save_tickets()
+            print(f"Successfully added note [{result['note_id']}] to ticket {ticket['id']}.")
+        else:
+            err_msg = result.get("error") if isinstance(result, dict) else result
+            print(f"Failed to add note: {err_msg}")
 
     def view_ticket_notes(self):
         ticket = self.find_ticket()
