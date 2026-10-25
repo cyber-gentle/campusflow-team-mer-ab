@@ -7,7 +7,7 @@ import re
 VALID_CATEGORIES = frozenset({"Network", "Hardware", "Software", "Other"})
 VALID_URGENCIES = frozenset({"low", "medium", "high"})
 VALID_STATUSES = frozenset({"open", "in_progress", "resolved"})
-TICKET_ID_REGEX = re.compile(r"T\d{3,}")
+TICKET_ID_PATTERN = re.compile(r"T\d{3,}")
 
 
 def validate_ticket_id(ticket_id: str) -> bool:
@@ -16,7 +16,7 @@ def validate_ticket_id(ticket_id: str) -> bool:
     """
     if not isinstance(ticket_id, str):
         return False
-    return bool(TICKET_ID_REGEX.fullmatch(ticket_id.strip()))
+    return bool(TICKET_ID_PATTERN.fullmatch(ticket_id.strip()))
 
 
 
