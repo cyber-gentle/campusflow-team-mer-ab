@@ -10,8 +10,8 @@ from campusflow.validation import (
     VALID_CATEGORIES,
     VALID_STATUSES,
     VALID_URGENCIES,
-    validate_affected_users,
-    validate_title,
+    validate_ticket_data,
+    validate_ticket_id,
 )
 
 REQUIRED_TICKET_KEYS = frozenset({
@@ -59,27 +59,22 @@ def validate_ticket_collection(data: any) -> tuple[bool, str, dict[str, dict]]:
         if key != ticket_id:
             return False, f"Dictionary key '{key}' does not match ticket ID '{ticket_id}'.", {}
 
-        clean_id_num = ticket_id.replace("T", "")
-        if not ticket_id.startswith("T") or not clean_id_num.isdigit():
+        if not validate_ticket_id(ticket_id):
             return False, f"Ticket '{key}' has an invalid ID format (must be T followed by digits).", {}
 
-        try:
-            clean_title = validate_title(ticket["title"])
-        except ValueError as e:
-            return False, f"Ticket '{key}' has invalid title: {e}", {}
+        val_res = validate_ticket_data(
+            ticket.get("title"),
+            ticket.get("category"),
+            ticket.get("urgency"),
+            ticket.get("affected_users"),
+        )
+        if not val_res.get("success", False):
+            return False, f"Ticket '{key}' has invalid data: {val_res.get('error')}", {}
 
-        category = str(ticket["category"]).strip().title()
-        if category not in VALID_CATEGORIES:
-            return False, f"Ticket '{key}' has invalid category '{ticket['category']}'.", {}
-
-        urgency = str(ticket["urgency"]).strip().lower()
-        if urgency not in VALID_URGENCIES:
-            return False, f"Ticket '{key}' has invalid urgency '{ticket['urgency']}'.", {}
-
-        try:
-            affected_users = validate_affected_users(ticket["affected_users"])
-        except ValueError as e:
-            return False, f"Ticket '{key}' has invalid affected_users: {e}", {}
+        clean_title = val_res["title"]
+        category = val_res["category"]
+        urgency = val_res["urgency"]
+        affected_users = val_res["affected_users"]
 
         expected_priority = calculate_priority(urgency, affected_users)
         actual_priority = str(ticket["priority"]).strip().lower()

@@ -4,6 +4,7 @@ from campusflow.tickets import create_ticket as add_ticket
 from campusflow.search import filter_tickets, sort_tickets_by_priority
 from campusflow.notes import add_note, format_notes_display
 from campusflow.understanding_check import run_understanding_check
+from campusflow.validation import validate_ticket_id
 
 
 
@@ -150,6 +151,8 @@ User: {self.current_user}
 
     def find_ticket(self) -> dict | str:
         ticket_id = input("Enter ticket ID: ").upper().strip()
+        if not validate_ticket_id(ticket_id):
+            return "Invalid ticket ID format. Expected format: T001."
         ticket = self.tickets.get(ticket_id)
 
         if ticket is None:

@@ -2,79 +2,66 @@
 Centralized validation helpers and lifecycle invariants for CampusFlow.
 """
 
+import re
+
 VALID_CATEGORIES = frozenset({"Network", "Hardware", "Software", "Other"})
 VALID_URGENCIES = frozenset({"low", "medium", "high"})
 VALID_STATUSES = frozenset({"open", "in_progress", "resolved"})
+TICKET_ID_REGEX = re.compile(r"T\d{3,}")
 
 
-def normalize_category(category: str) -> str:
+def validate_ticket_id(ticket_id: str) -> bool:
     """
-    Normalizes category to canonical title-case and validates against whitelist.
-    Raises ValueError if category is invalid.
+    Validates ticket ID format: must start with 'T' followed by at least 3 digits (e.g. T001, T042, T1000).
     """
-    if not isinstance(category, str):
-        raise ValueError("Category must be a string.")
-    
-    clean = category.strip().title()
-    if clean not in VALID_CATEGORIES:
-        raise ValueError("Category must be Network, Hardware, Software, or Other.")
-    return clean
+    if not isinstance(ticket_id, str):
+        return False
+    return bool(TICKET_ID_REGEX.fullmatch(ticket_id.strip()))
 
 
-def normalize_urgency(urgency: str) -> str:
-    """
-    Normalizes urgency to lowercase and validates against whitelist.
-    Raises ValueError if urgency is invalid.
-    """
-    if not isinstance(urgency, str):
-        raise ValueError("Urgency must be a string.")
-    
-    clean = urgency.strip().lower()
-    if clean not in VALID_URGENCIES:
-        raise ValueError("Urgency must be low, medium, or high.")
-    return clean
 
-
-def validate_affected_users(affected_users) -> int:
+def validate_ticket_data(title: str, category: str, urgency: str, affected_users: int) -> dict:
     """
-    Validates affected_users is a strictly positive integer.
-    Explicitly rejects booleans (isinstance(True, int) is True), floats, strings,
-    and non-positive integers. Raises ValueError on invalid input.
+    Validates and normalizes all core ticket attributes together.
+    Returns:
+      On success: {"title": str, "category": str, "urgency": str, "affected_users": int, "success": True}
+      On failure: {"error": str, "success": False}
+    Does NOT raise exceptions.
     """
-    if isinstance(affected_users, bool) or not isinstance(affected_users, int):
-        raise ValueError("Affected users must be a positive integer.")
-    
-    if affected_users < 1:
-        raise ValueError("Affected users must be a positive integer.")
-    
-    return affected_users
-
-
-def validate_title(title: str) -> str:
-    """
-    Validates ticket title is a non-empty string after trimming whitespace.
-    Raises ValueError if title is blank or invalid.
-    """
+    # 1. Title validation
     if not isinstance(title, str):
-        raise ValueError("Title must be a string.")
-    
-    clean = title.strip()
-    if not clean:
-        raise ValueError("Title must not be blank.")
-    
-    return clean
+        return {"error": "Title must be a string.", "success": False}
+    clean_title = title.strip()
+    if not clean_title:
+        return {"error": "Title must not be blank.", "success": False}
 
+    # 2. Category normalization & whitelist
+    if not isinstance(category, str):
+        return {"error": "Category must be a string.", "success": False}
+    clean_category = category.strip().title()
+    if clean_category not in VALID_CATEGORIES:
+        return {"error": "Category must be Network, Hardware, Software, or Other.", "success": False}
 
-def validate_ticket_data(title: str, category: str, urgency: str, affected_users: int) -> tuple[str, str, str, int]:
-    """
-    Validates all core ticket attributes together.
-    Returns normalized (title, category, urgency, affected_users) or raises ValueError.
-    """
-    clean_title = validate_title(title)
-    clean_category = normalize_category(category)
-    clean_urgency = normalize_urgency(urgency)
-    clean_users = validate_affected_users(affected_users)
-    return clean_title, clean_category, clean_urgency, clean_users
+    # 3. Urgency normalization & whitelist
+    if not isinstance(urgency, str):
+        return {"error": "Urgency must be a string.", "success": False}
+    clean_urgency = urgency.strip().lower()
+    if clean_urgency not in VALID_URGENCIES:
+        return {"error": "Urgency must be low, medium, or high.", "success": False}
+
+    # 4. Strictly positive integer affected users (reject booleans, floats, non-integers, <= 0)
+    if isinstance(affected_users, bool) or not isinstance(affected_users, int):
+        return {"error": "Affected users must be a positive integer.", "success": False}
+    if affected_users < 1:
+        return {"error": "Affected users must be a positive integer.", "success": False}
+
+    return {
+        "title": clean_title,
+        "category": clean_category,
+        "urgency": clean_urgency,
+        "affected_users": affected_users,
+        "success": True,
+    }
 
 
 def validate_assignment(ticket: dict, staff: str) -> tuple[bool, str]:

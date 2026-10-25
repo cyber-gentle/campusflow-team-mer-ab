@@ -6,12 +6,9 @@ Covers: AC-A1, AC-A2, AC-A3, and Bug-Hunter test.
 import unittest
 from campusflow.validation import (
     can_transition,
-    normalize_category,
-    normalize_urgency,
-    validate_affected_users,
     validate_assignment,
     validate_ticket_data,
-    validate_title,
+    validate_ticket_id,
 )
 from campusflow.tickets import create_ticket
 
@@ -52,13 +49,15 @@ class TestTicketValidationAndInvariants(unittest.TestCase):
         self.assertEqual(self.open_unassigned["status"], "open")
         self.assertIsNone(self.open_unassigned["assigned_to"])
 
-    def test_ac_a2_invalid_affected_users_rejected_with_value_error(self):
-        """AC-A2: Invalid affected_users (0, -5, 4.2, True, 'five') is rejected with ValueError."""
+    def test_ac_a2_invalid_affected_users_returns_error_dict(self):
+        """AC-A2: Invalid affected_users (0, -5, 4.2, True, 'five') returns error dict."""
         invalid_cases = [0, -5, 4.2, True, False, "five", None, [10]]
         for val in invalid_cases:
             with self.subTest(val=val):
-                with self.assertRaises(ValueError):
-                    validate_affected_users(val)
+                res = validate_ticket_data("Valid Title", "Network", "high", val)
+                self.assertIsInstance(res, dict)
+                self.assertFalse(res.get("success", True))
+                self.assertIn("positive integer", res.get("error", "").lower())
 
     def test_ac_a2_create_ticket_returns_error_dict_on_invalid_affected_users(self):
         """AC-A2: create_ticket does not halt on error, but returns error details dict."""
@@ -76,30 +75,36 @@ class TestTicketValidationAndInvariants(unittest.TestCase):
         self.assertEqual(self.resolved_ticket["assigned_to"], "Gabriel")
 
     def test_category_normalization_and_whitelist(self):
-        """Category is normalized to canonical title-case or rejected if invalid."""
-        self.assertEqual(normalize_category("network"), "Network")
-        self.assertEqual(normalize_category("  hardware  "), "Hardware")
-        self.assertEqual(normalize_category("SOFTWARE"), "Software")
-        self.assertEqual(normalize_category("other"), "Other")
+        """Category is normalized to canonical title-case or returns error dict if invalid."""
+        for raw, expected in [("network", "Network"), ("  hardware  ", "Hardware"), ("SOFTWARE", "Software"), ("other", "Other")]:
+            with self.subTest(raw=raw):
+                res = validate_ticket_data("Valid Title", raw, "low", 1)
+                self.assertTrue(res.get("success"))
+                self.assertEqual(res.get("category"), expected)
 
-        with self.assertRaises(ValueError):
-            normalize_category("Billing")
+        res_err = validate_ticket_data("Valid Title", "Billing", "low", 1)
+        self.assertFalse(res_err.get("success", True))
+        self.assertIn("category", res_err.get("error", "").lower())
 
     def test_urgency_normalization_and_whitelist(self):
-        """Urgency is normalized to lowercase or rejected if invalid."""
-        self.assertEqual(normalize_urgency("HIGH"), "high")
-        self.assertEqual(normalize_urgency("  Medium "), "medium")
-        self.assertEqual(normalize_urgency("low"), "low")
+        """Urgency is normalized to lowercase or returns error dict if invalid."""
+        for raw, expected in [("HIGH", "high"), ("  Medium ", "medium"), ("low", "low")]:
+            with self.subTest(raw=raw):
+                res = validate_ticket_data("Valid Title", "Network", raw, 1)
+                self.assertTrue(res.get("success"))
+                self.assertEqual(res.get("urgency"), expected)
 
-        with self.assertRaises(ValueError):
-            normalize_urgency("emergency")
+        res_err = validate_ticket_data("Valid Title", "Network", "emergency", 1)
+        self.assertFalse(res_err.get("success", True))
+        self.assertIn("urgency", res_err.get("error", "").lower())
 
     def test_validate_title_rejects_blank_strings(self):
-        """Blank or whitespace-only title raises ValueError."""
-        with self.assertRaises(ValueError):
-            validate_title("   ")
-        with self.assertRaises(ValueError):
-            validate_title("")
+        """Blank or whitespace-only title returns error dict."""
+        for blank_title in ["   ", "", None, 123]:
+            with self.subTest(title=blank_title):
+                res = validate_ticket_data(blank_title, "Network", "low", 1)
+                self.assertFalse(res.get("success", True))
+                self.assertIn("title", res.get("error", "").lower())
 
     def test_bug_hunter_failed_validation_leaves_ticket_collection_untouched(self):
         """
@@ -132,6 +137,19 @@ class TestTicketValidationAndInvariants(unittest.TestCase):
         self.assertEqual(list(tickets.keys()), original_keys)
         self.assertNotIn("T002", tickets)
 
+    def test_validate_ticket_id(self):
+        """Validates ticket ID format with re.fullmatch(r'T\\d{3,}')."""
+        valid_ids = ["T001", "T042", "T999", "T1000", "T123456", "  T001  "]
+        for tid in valid_ids:
+            with self.subTest(tid=tid):
+                self.assertTrue(validate_ticket_id(tid))
+
+        invalid_ids = ["T", "T1", "T02", "T12", "123", "T001a", "T001-fix", "T12T34", "", None, 123, []]
+        for tid in invalid_ids:
+            with self.subTest(tid=tid):
+                self.assertFalse(validate_ticket_id(tid))
+
 
 if __name__ == "__main__":
     unittest.main()
+

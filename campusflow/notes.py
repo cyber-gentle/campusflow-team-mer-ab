@@ -39,9 +39,6 @@ def add_note(ticket: dict, author: str, message: str) -> dict:
             )
         return clean_author, clean_msg, None
 
-    def _generate_note_id() -> str:
-        return next_note_id(ticket)
-
     # 1. Validate ticket state
     ticket_err = _validate_ticket_state()
     if ticket_err:
@@ -53,9 +50,8 @@ def add_note(ticket: dict, author: str, message: str) -> dict:
         return {"error": payload_err, "success": False}
 
     # 3. Generate note
-    note_id = _generate_note_id()
     note = {
-        "note_id": note_id,
+        "note_id": next_note_id(ticket),
         "author": clean_author,
         "message": clean_message,
     }
@@ -68,12 +64,8 @@ def add_note(ticket: dict, author: str, message: str) -> dict:
 
 
 def format_notes_display(ticket: dict) -> str:
-    """Format all notes of a ticket into a clean readable string with nested sorting helper."""
-
-    def _extract_sorted_notes() -> list[dict]:
-        return get_ticket_notes(ticket)
-
-    notes = _extract_sorted_notes()
+    """Format all notes of a ticket into a clean readable string."""
+    notes = get_ticket_notes(ticket)
     if not notes:
         return f"No follow-up notes found for ticket {ticket.get('id', 'N/A')}."
 
